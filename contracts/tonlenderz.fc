@@ -1,7 +1,50 @@
 #include "imports/stdlib.fc";
 
-() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+int interest_rate;
+int loan_duration;
+int total_lent;
+int total_borrowed;
 
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    ;; Check if the message value is greater than zero
+    if (msg_value > 0) {
+        ;; Process the message
+        ;; For example, you could add the message value to the balance
+        my_balance += msg_value;
+    }
+
+    ;; Check if the message body is empty
+    if (in_msg_body.len() == 0) {
+        ;; If the message body is empty, return
+        return ();
+    }
+
+    ;; Read operation type from message body
+    int op = in_msg_body~load_uint(32);
+
+    if (op == 1) {
+        ;; Lend operation
+        total_lent += msg_value;
+    } else if (op == 2) {
+        ;; Borrow operation
+        total_borrowed += msg_value;
+    }
+}
+
+int get_interest_rate() method_id {
+    return interest_rate;
+}
+
+int get_loan_duration() method_id {
+    return loan_duration;
+}
+
+int get_total_lent() method_id {
+    return total_lent;
+}
+
+int get_total_borrowed() method_id {
+    return total_borrowed;
 }
 
 

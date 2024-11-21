@@ -1,0 +1,25 @@
+#include "imports/stdlib.fc";
+
+int total_supply;
+map<addr, int> balances;
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    ;; Process token transfer
+    if (in_msg_body.len() > 0) {
+        addr to = in_msg_body~load_msg_addr();
+        int amount = in_msg_body~load_uint(32);
+
+        if (balances[my_balance] >= amount) {
+            balances[my_balance] -= amount;
+            balances[to] += amount;
+        }
+    }
+}
+
+int get_balance(addr account) method_id {
+    return balances[account];
+}
+
+int get_total_supply() method_id {
+    return total_supply;
+}

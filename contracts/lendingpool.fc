@@ -1,0 +1,37 @@
+#include "imports/stdlib.fc";
+
+int pool_balance;
+map<addr, int> lenders;
+map<addr, int> borrowers;
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    ;; Process lending and borrowing
+    if (in_msg_body.len() > 0) {
+        int op = in_msg_body~load_uint(32);
+
+        if (op == 1) {
+            ;; Lend operation
+            lenders[my_balance] += msg_value;
+            pool_balance += msg_value;
+        } else if (op == 2) {
+            ;; Borrow operation
+            int amount = in_msg_body~load_uint(32);
+            if (pool_balance >= amount) {
+                borrowers[my_balance] += amount;
+                pool_balance -= amount;
+            }
+        }
+    }
+}
+
+int get_pool_balance() method_id {
+    return pool_balance;
+}
+
+int get_lender_balance(addr lender) method_id {
+    return lenders[lender];
+}
+
+int get_borrower_balance(addr borrower) method_id {
+    return borrowers[borrower];
+}
