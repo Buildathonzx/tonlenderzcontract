@@ -5,6 +5,29 @@ int loan_duration;
 int total_lent;
 int total_borrowed;
 
+const int op::deposit = 3;
+const int op::withdraw = 4;
+const int op::transfer = 5;
+
+() handle_deposit(slice sender_address, int amount) impure {
+    // Process deposit
+    total_lent += amount;
+}
+
+() handle_withdraw(slice sender_address, int amount) impure {
+    // Process withdrawal
+    require(total_borrowed >= amount, "Insufficient funds");
+    total_borrowed -= amount;
+    // Send TON to sender
+    send_tons(sender_address, amount);
+}
+
+() handle_transfer(slice from_address, slice to_address, int amount) impure {
+    // Process transfer between users
+    require(total_lent >= amount, "Insufficient balance");
+    // Update balances
+}
+
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
     ;; Check if the message value is greater than zero
     if (msg_value > 0) {
@@ -28,6 +51,13 @@ int total_borrowed;
     } else if (op == 2) {
         ;; Borrow operation
         total_borrowed += msg_value;
+    } else if (op == op::deposit) {
+        handle_deposit(sender_address, msg_value);
+    } elseif (op == op::withdraw) {
+        handle_withdraw(sender_address, in_msg_body~load_uint(64));
+    } elseif (op == op::transfer) {
+        slice to_address = in_msg_body~load_msg_addr();
+        handle_transfer(sender_address, to_address, in_msg_body~load_uint(64));
     }
 }
 
